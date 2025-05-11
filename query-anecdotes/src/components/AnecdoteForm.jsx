@@ -3,10 +3,15 @@ import { useContext } from 'react'
 import axios from 'axios'
 
 // local
-import { NotificationContext } from '../App'
+import { NotificationContext } from '../contexts/NotificationContext'
 
 const AnecdoteForm = () => {
+  // clunky form
   const { notification, notificationDispatch } = useContext(NotificationContext)
+
+  // thunk form
+  const { notifyWithTimeout } = useContext(NotificationContext)
+
   const queryClient = useQueryClient()
 
   const createAnecdoteMutation = useMutation({
@@ -19,23 +24,20 @@ const AnecdoteForm = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['anecdotes'] })
+      // clunky form
       notificationDispatch({
         type: 'SET_NOTIFICATION',
         payload: `Anecdote created: '${data.content}'`,
       })
       setTimeout(() => {
         notificationDispatch({ type: 'CLEAR_NOTIFICATION' })
-      }, 5000)
+      }, 2000)
     },
     onError: (error) => {
       console.error('Error creating anecdote:', error)
-      notificationDispatch({
-        type: 'SET_NOTIFICATION',
-        payload: `Error creating anecdote: '${error.message}'`,
-      })
-      setTimeout(() => {
-        notificationDispatch({ type: 'CLEAR_NOTIFICATION' })
-      }, 5000)
+      // thunk form
+      // induce this by sending string with len < 5
+      notifyWithTimeout('Error creating anecdote', 500)
     },
   })
 

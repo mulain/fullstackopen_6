@@ -1,30 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { createContext, useReducer } from 'react'
+import { useContext } from 'react'
 import axios from 'axios'
 
 // local
 import AnecdoteForm from './components/AnecdoteForm'
 import Notification from './components/Notification'
-
-export const NotificationContext = createContext()
-
-const notificationReducer = (state, action) => {
-  switch (action.type) {
-    case 'SET_NOTIFICATION':
-      return action.payload
-    case 'CLEAR_NOTIFICATION':
-      return ''
-    default:
-      return state
-  }
-}
+import { NotificationContext } from './contexts/NotificationContext'
 
 const App = () => {
-  const [notification, notificationDispatch] = useReducer(
-    notificationReducer,
-    ''
-  )
-
+  const { notifyWithTimeout } = useContext(NotificationContext)
   const queryClient = useQueryClient()
 
   const voteAnecdoteMutation = useMutation({
@@ -37,23 +21,12 @@ const App = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['anecdotes'] })
-      notificationDispatch({
-        type: 'SET_NOTIFICATION',
-        payload: `You voted for '${data.content}'`,
-      })
-      setTimeout(() => {
-        notificationDispatch({ type: 'CLEAR_NOTIFICATION' })
-      }, 5000)
+
+      notifyWithTimeout(`You voted for '${data.content}'`, 3000)
     },
     onError: (error) => {
       console.error('Error voting anecdote:', error)
-      notificationDispatch({
-        type: 'SET_NOTIFICATION',
-        payload: 'Error voting for anecdote',
-      })
-      setTimeout(() => {
-        notificationDispatch({ type: 'CLEAR_NOTIFICATION' })
-      }, 5000)
+      notifyWithTimeout('Error voting for anecdote', 3000)
     },
   })
 
@@ -79,9 +52,7 @@ const App = () => {
   }
 
   return (
-    <NotificationContext.Provider
-      value={{ notification, notificationDispatch }}
-    >
+    <div>
       <h3>Anecdote app</h3>
 
       <Notification />
@@ -96,7 +67,7 @@ const App = () => {
           </div>
         </div>
       ))}
-    </NotificationContext.Provider>
+    </div>
   )
 }
 
