@@ -1,4 +1,5 @@
 import { createContext, useReducer } from 'react'
+import PropTypes from 'prop-types'
 
 // local
 import notificationReducer, {
@@ -27,4 +28,8 @@ export const NotificationProvider = ({ children }) => {
       {children}
     </NotificationContext.Provider>
   )
+}
+
+NotificationProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 }
